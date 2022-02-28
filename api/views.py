@@ -1,15 +1,21 @@
+from django.core.validators import URLValidator
+from django.core.exceptions import ValidationError
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 
 from .models import TinyURL
 from .serializers import TinyURLSerializer
-
 from utils.helper import get_milli_shortcode
 
 
 class TinyURLViewSet(viewsets.ViewSet):
     def create(self, request):
         main_url = request.data["url"]
+        url_validator = URLValidator()
+        try:
+            url_validator(main_url)
+        except ValidationError:
+            return Response({"message": "Sorry! Invalid URL"}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
             url = TinyURL.objects.get(main_url=main_url)
